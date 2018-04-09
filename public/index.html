@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Hello World</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/jumbotron.css" rel="stylesheet">
+
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Project Name</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <form class="navbar-form navbar-right">
+            <div class="form-group ">
+              <input type="password" placeholder="Secret" class="form-control" id="secret">
+            </div>
+            <button type="submit" class="btn btn-success" id="login">Sign in</button>
+          </form>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Hello, world!</h1>
+        <p>This is a template for a simple dapp running on NASGO.</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Sample Button &raquo;</a></p>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-4">
+          <h2>Contract:addBalance</h2>
+          <p>invoke the contract to increase your account's balance (2 NSG). you need to sign in  first</p>
+          <p><a class="btn btn-default" href="javascript:void(0)"  id="add" role="button">run &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+          <h2>Contract:deductBalance</h2>
+          <p>invoke the contract to deduct your account's balance (2 NSG). you need to sign in  first </p>
+          <p><a class="btn btn-default" href="javascript:void(0)" role="button">run &raquo;</a></p>
+       </div>
+       <div class="col-md-4">
+          <h2>Contract:buyGoods</h2>
+          <p>invoke the contract to buy a goods and deduct your account's balance (2 NSG), the record will be store in sidechain's DB .you need to sign in  first</p>
+          <p><a class="btn btn-default" href="javascript:void(0)" role="button">run &raquo;</a></p>
+       </div>
+        <div class="col-md-4">
+          <h2>Interface:getBalance</h2>
+          <p>get your account's balance via HTTP interface</p>
+          <p><a class="btn btn-default" href="javascript:void(0)" id="getBalance" role="button">get &raquo;</a></p>
+        </div>
+      </div>
+
+
+      <hr>
+
+      <footer>
+        <p>&copy; 2018 Company, Inc.</p>
+      </footer>
+    </div> <!-- /container -->
+
+    
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script>window.jQuery || document.write('<script src="js/jquery.min.js"><\/script>')</script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bitcore-mnemonic.js">   </script>
+    <script type="text/javascript">
+        function parseAccount(str){
+         var p = new Promise(function(resolve,reject){
+            var cc = JSON.parse(str);
+                     resolve(cc);
+                    reject(JSON.parse(str));
+        });
+      $(document).ready(function(){
+         var dappId=""  //specify your dappId
+         var apiUrl="/api/dapps/"+dappId;
+
+         //login & get account detail
+        $('#login').click(function(){
+          // Check secret format
+          if(!Mnemonic.isValid($('#secret').val())){
+                alert("Invalid NASGO Account Secret")
+          }else{
+            $.ajax({
+                type: 'POST',
+                url: apiUrl+'/login',
+                data: {
+                    secret: $('#secret').val()
+                },
+                async:false,
+                dataType: 'json',
+                success: function(res) {
+                    if(res.success==true){
+                        localStorage.setItem('secret',$('#secret').val())
+                        localStorage.setItem('account',JSON.stringify(res['account']))
+                         alert("You have login to Dapp")
+                    }else{
+                         alert("Invalid BIP39 Secret")
+                    }
+                    
+                }
+            });
+          }
+        })
+
+        //invoke addBalance contract
+        $('#add').click(function(){
+            if(!localStorage.getItem('secret')){
+                alert("you havn't signed in this dapp");
+                return
+            }
+            let args=[];
+            let data = {
+                secret: localStorage.getItem('secret'),
+                fee: '0',
+                type: '1000',
+                args: JSON.stringify(args)
+            }
+            $.ajax({
+                type: 'PUT',
+                url: apiUrl+'/transactions/unsigned',
+                data: data,
+                async:false,
+                dataType: 'json',
+                success: function(res) {
+                    if(res.success==true){
+                         alert("Add 2 NSG to your account")
+                    }else{
+                         alert(res.error);
+                    }
+                    
+                }
+            });
+        })
+         
+        //invode deductBalance contract
+        $('#deduct').click(function(){
+            if(!localStorage.getItem('secret')){
+                alert("you havn't signed in this dapp");
+                return
+            }
+            let args=[];
+            let data = {
+                secret: localStorage.getItem('secret'),
+                fee: '0',
+                type: '1001',
+                args: JSON.stringify(args)
+            }
+            $.ajax({
+                type: 'PUT',
+                url: apiUrl+'/transactions/unsigned',
+                data: data,
+                async:false,
+                dataType: 'json',
+                success: function(res) {
+                    if(res.success==true){
+                         alert("deduct 2 NSG from your account")
+                    }else{
+                         alert(res.error);
+                    }
+                    
+                }
+            });
+        })
+
+        //invode buygoods contract
+        $('#buy').click(function(){
+            if(!localStorage.getItem('secret')){
+                alert("you havn't signed in this dapp");
+                return
+            }
+            let args=[];
+            let data = {
+                secret: localStorage.getItem('secret'),
+                fee: '0',
+                type: '1002',
+                args: JSON.stringify(args)
+            }
+            $.ajax({
+                type: 'PUT',
+                url: apiUrl+'/transactions/unsigned',
+                data: data,
+                async:false,
+                dataType: 'json',
+                success: function(res) {
+                    if(res.success==true){
+                         alert("You have buy a good ,deduct 2 nsg from your account")
+                    }else{
+                         alert(res.error);
+                    }
+                    
+                }
+            });
+        })
+        
+        //access  getBalance  interface
+        $('#buy').click(function(){
+            let Account = localStorage.getItem("account");
+            parseAccount(Id).then(function(b){
+            if(Id==null){
+              alert("you havn't signed in this dapp");
+            }else{
+              $.ajax({
+              type:"get",
+              url:apiUrl+"/getBalance/"+b.address,
+              async:true,
+              success:function(res){
+                     alert('your balance :'+res)
+                  }
+              });
+            }
+        })
+
+      });
+    </script>
+  </body>
+</html>
