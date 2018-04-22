@@ -9,7 +9,7 @@ module.exports = {
   },
   addBalance: async function(arg) {
   	let amount=1;
-  	let amount = bignum(amount).mul('200000000').floor().toString()
+  	amount = bignum(amount).mul('200000000').floor().toString()
   	app.balances.increase(this.trs.senderId, "NSG", amount)
   },
   buyGoods: async function(arg) {
